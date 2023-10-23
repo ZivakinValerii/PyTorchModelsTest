@@ -45,15 +45,15 @@ def CalculateConfusionMatrix(gt_list, pred_list, target_names, img_out_path):
 
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    state = torch.load('models/AutoencoderClassifier_with_Normalize.pt')
+    state = torch.load('models_for_duplicates/AutoencoderClassifier_NAU_DATASET.pt')
     #state = torch.load('models/AutoencoderClassifier_last_without_norms.pt')
     model = state['architecture']
     model.load_state_dict(state['state_dict'])
 
     mean = 0.5
     sd = 0.5
-    transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=[mean]*3, std=[sd]*3)])
-    test_dataset = datasets.ImageFolder(root='results\Decoded\Imitated_FromNoGen', transform=transform)
+    transform = transforms.Compose([transforms.Resize((64, 64)), transforms.ToTensor(), transforms.Normalize(mean=[mean]*3, std=[sd]*3)])
+    test_dataset = datasets.ImageFolder(root='D:\\MyPy\\MyPyTorchProj\\results\\Decoded\\Imitated_NAUSET', transform=transform)
     test_data = torch.utils.data.DataLoader(test_dataset, batch_size=128, shuffle=False)
     classes = test_data.dataset.classes
     model.eval()  # переводим модель в режим предсказания
@@ -71,7 +71,7 @@ if __name__ == '__main__':
             true_labels += labels.cpu().numpy().tolist()
 
 
-    CalculateConfusionMatrix(true_labels, predictions, classes, 'confusion_matrix_FromNoGen.png')
+    CalculateConfusionMatrix(true_labels, predictions, classes, 'confusion_matrix_NAUSET_from_beg_to_gen.png')
     # # строим матрицу распознавания
     # conf_matrix = confusion_matrix(true_labels, predictions)
     # # normalized confusion matrix

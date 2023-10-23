@@ -57,15 +57,15 @@ def save_laltents(folder_path: str, classes_names, vectors_dict, pca_dict, compo
 
 
 if __name__ == '__main__':
-    cc = 500
+    cc = 1000
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Model loading")
     #model = load_model('models/conv_autoencoder_no_pool_with_cross_NAU_DATASET.pth', device)
-    model = load_model('models/conv_autoencoder_no_pool_with_cross.pth', device)
+    model = load_model('models_for_duplicates/conv_autoencoder_no_pool_with_cross_NAU_DATASET_last_all64.pth', device)
     summary(model, input_size=(3, 64, 64))
 
     print("Data loading")
-    data_loader = get_data_loader('D:/MyPy/MyFirstAutioncoderPro/TRAINN', 0.5, 0.5)
+    data_loader = get_data_loader('D:\\MyPy\\DataSets\\NAU_DATASET_last_PCA', 0.5, 0.5)
     #data_loader = get_data_loader('D:/MyPy/DataSets/NAU_DATASET', 0.5, 0.5)
     print("Data loaded")
 
@@ -95,5 +95,5 @@ if __name__ == '__main__':
             class_latent_dict[label].append(latent_vectors[i].detach().cpu().numpy())
             class_pca_dict[label].append(pca_view[i])
 
-    save_laltents('results/Files/Satellite_Dataset/', classes_names=classes, vectors_dict=class_latent_dict, pca_dict=class_pca_dict,
+    save_laltents('results/Files/NAULASTSET_1000PCA/', classes_names=classes, vectors_dict=class_latent_dict, pca_dict=class_pca_dict,
                   components_count=cc)

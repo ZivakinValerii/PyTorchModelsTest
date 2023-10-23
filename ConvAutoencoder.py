@@ -118,6 +118,86 @@ class ConvAutoencoderNoPool(nn.Module):
         return x
 
 
+class ConvAutoencoder128(nn.Module):
+    def __init__(self):
+        super(ConvAutoencoder128, self).__init__()
+
+        # Энкодер
+        self.encoder = nn.Sequential(
+            nn.Conv2d(3, 32, 3, stride=2, padding=1),  # 64x64x32
+            nn.ReLU(True),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1),  # 32x32x64
+            nn.ReLU(True),
+            nn.Conv2d(64, 128, 3, stride=2, padding=1),  # 16x16x128
+            nn.ReLU(True),
+            nn.Conv2d(128, 256, 3, stride=2, padding=1),  # 8x8x256
+            nn.ReLU(True),
+            nn.Conv2d(256, 256, 3, stride=2, padding=1),  # 4x4x256
+            nn.ReLU(True),
+            nn.Conv2d(256, 256, 3, stride=2, padding=1),  # 2x2x256
+            nn.ReLU(True),
+        )
+
+        # Декодер
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(256, 256, kernel_size=3, stride=2, padding=1, output_padding=1),  # 4x4x256
+            nn.ReLU(True),
+            nn.ConvTranspose2d(256, 256, kernel_size=3, stride=2, padding=1, output_padding=1),  # 8x8x256
+            nn.ReLU(True),
+            nn.ConvTranspose2d(256, 128, 3, stride=2, padding=1, output_padding=1),  # 16x16x128
+            nn.ReLU(True),
+            nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1),  # 32x32x64
+            nn.ReLU(True),
+            nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),  # 64x64x32
+            nn.ReLU(True),
+            nn.ConvTranspose2d(32, 3, 3, stride=2, padding=1, output_padding=1),  # 128x128x3
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
+
+class ConvAutoencoder256(nn.Module):
+    def __init__(self):
+        super(ConvAutoencoder256, self).__init__()
+
+        # Энкодер
+        self.encoder = nn.Sequential(
+            nn.Conv2d(3, 32, 3, stride=2, padding=1),  # 128x128x32
+            nn.ReLU(True),
+            nn.Conv2d(32, 64, 3, stride=2, padding=1),  # 64x64x64
+            nn.ReLU(True),
+            nn.Conv2d(64, 128, 3, stride=2, padding=1),  # 32x32x128
+            nn.ReLU(True),
+            nn.Conv2d(128, 256, 3, stride=4, padding=1),  # 8x8x256
+            nn.ReLU(True),
+            nn.Conv2d(256, 256, 3, stride=4, padding=1),  # 2x2x256
+            nn.ReLU(True),
+        )
+
+        # Декодер
+        self.decoder = nn.Sequential(
+            nn.ConvTranspose2d(256, 256, kernel_size=3, stride=4, padding=1, output_padding=3),  # 8x8x256
+            nn.ReLU(True),
+            nn.ConvTranspose2d(256, 128, 3, stride=4, padding=1, output_padding=3),  # 32x32x128
+            nn.ReLU(True),
+            nn.ConvTranspose2d(128, 64, 3, stride=2, padding=1, output_padding=1),  # 64x64x64
+            nn.ReLU(True),
+            nn.ConvTranspose2d(64, 32, 3, stride=2, padding=1, output_padding=1),  # 128x128x32
+            nn.ReLU(True),
+            nn.ConvTranspose2d(32, 3, 3, stride=2, padding=1, output_padding=1),  # 256x256x3
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.decoder(x)
+        return x
+
+
 class ModifiedClassifier(nn.Module):
     def __init__(self, in_features, num_classes):
         super(ModifiedClassifier, self).__init__()
@@ -243,7 +323,7 @@ def train_coder_with_cross(model, train_loader, criterion, optimizer, num_epochs
             val_loss = running_val_loss / len(val_loader.dataset)
             val_loss_list.append(val_loss)
             tqdm.write('Fold [%d/%d], Epoch [%d/%d], Validation Loss: %.4f' % (
-            fold, n_splits, epoch + 1, num_epochs, val_loss))
+                fold, n_splits, epoch + 1, num_epochs, val_loss))
     return loss_list, val_loss_list
 
 

@@ -1,6 +1,7 @@
 from cProfile import label
-
-from ConvAutoencoder import ConvAutoencoder, ConvAutoencoderNoPool, train_coder, train_coder_with_cross
+from CustomDataSet import CustomDataset
+from ConvAutoencoder import ConvAutoencoder, ConvAutoencoderNoPool, train_coder, train_coder_with_cross, \
+    ConvAutoencoder128, ConvAutoencoder256
 
 import torch
 import torch.nn as nn
@@ -20,27 +21,34 @@ if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     mean = 0.5
     sd = 0.5
-
-    transform = transforms.Compose([transforms.Resize((64, 64)), transforms.ToTensor(),
+    size_types = [(64, 64)]
+    for size_type in size_types:
+        transform = transforms.Compose([transforms.Resize(size_type), transforms.ToTensor(),
                                     transforms.Normalize(mean=[mean, mean, mean],
                                                          std=[sd, sd, sd])])
-    #train_dataset = datasets.ImageFolder('D:/MyPy/MyFirstAutioncoderPro/TRAINN', transform=transform)
-    train_dataset = datasets.ImageFolder('D:/MyPy/DataSets/NAU_DATASET', transform=transform)
-    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
+        #train_dataset = datasets.ImageFolder('D:/MyPy/MyFirstAutioncoderPro/TRAINN', transform=transform)
+        train_dataset = datasets.ImageFolder('D:/MyPy/DataSets/NAU_DATASET_last', transform=transform)
+        #train_dataset = CustomDataset("D:/MyPy/DataSets/NAU_DATASET_SORTED", size_type, transform)
+        train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=128, shuffle=True)
+        model = None
+        if size_type == (64, 64):
+            model = ConvAutoencoderNoPool()
+        elif size_type == (128, 128):
+            model = ConvAutoencoder128()
+        else:
+            model = ConvAutoencoder256()
+        model.to(device)
+        criterion = nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    model = ConvAutoencoderNoPool()
-    model.to(device)
-    criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+        num_ep = 5
+        train_losses, val_losses = train_coder_with_cross(model, train_loader, criterion, optimizer, num_ep, device)
 
-    num_ep = 5
-    train_losses, val_losses = train_coder_with_cross(model, train_loader, criterion, optimizer, num_ep, device)
+        torch.save(model.state_dict(), f'models_for_duplicates/conv_autoencoder_no_pool_with_cross_NAU_DATASET_last_all{size_type[0]}.pth')
 
-    torch.save(model.state_dict(), 'models/conv_autoencoder_no_pool_with_cross_NAU_DATASET.pth')
-
-    plt.plot(train_losses, label='Train Loss')
-    plt.plot(val_losses, label='Val Loss')
-    plt.legend()
-    plt.show()
+    #plt.plot(train_losses, label='Train Loss')
+    #plt.plot(val_losses, label='Val Loss')
+    #plt.legend()
+    #plt.show()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
